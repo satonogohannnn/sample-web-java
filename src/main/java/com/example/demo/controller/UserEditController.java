@@ -19,6 +19,7 @@ import com.example.demo.constant.db.AuthorityKind;
 import com.example.demo.constant.db.UserStatusKind;
 import com.example.demo.dto.UserEditInfo;
 import com.example.demo.dto.UserUpdateInfo;
+import com.example.demo.entity.UserInfo;
 import com.example.demo.form.UserEditForm;
 import com.example.demo.service.UserEditService;
 import com.example.demo.util.AppUtil;
@@ -98,7 +99,7 @@ public class UserEditController {
 	 * @return リダイレクトURL
 	 */
 	@PostMapping(value = UrlConst.USER_EDIT, params = "update")
-	public String updateUser(UserEditForm form, @AuthenticationPrincipal User user,
+	public String updateUser(Model model, UserEditForm form, @AuthenticationPrincipal User user,
 			RedirectAttributes redirectAttributes) {
 		var updateDto = mapper.map(form, UserUpdateInfo.class);
 		updateDto.setLoginId((String) session.getAttribute(SessionKeyConst.SELECETED_LOGIN_ID));
@@ -117,7 +118,24 @@ public class UserEditController {
 		redirectAttributes.addFlashAttribute(ModelKey.MESSAGE,
 				AppUtil.getMessage(messageSource, updateMessage.getMessageId()));
 
-		return AppUtil.doRedirect(UrlConst.USER_EDIT);
+		model.addAttribute("isError", true);
+		model.addAttribute("message", AppUtil.getMessage(messageSource, updateMessage.getMessageId()));
+
+		return ViewNameConst.USER_EDIT;
+	}
+
+	/**
+	 * 画面表示に必要な共通項目の設定を行います。
+	 * 
+	 * @param model モデル
+	 * @param editedForm 入力済みのフォーム情報
+	 */
+	private void setupCommonInfo(Model model, UserInfo userInfo) {
+		model.addAttribute("userEditForm", mapper.map(userInfo, UserEditForm.class));
+		model.addAttribute("userEditInfo", mapper.map(userInfo, UserEditInfo.class));
+
+		model.addAttribute("userStatusKindOptions", UserStatusKind.values());
+		model.addAttribute("authorityKindOptions", AuthorityKind.values());
 	}
 
 }
